@@ -1,46 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ULTRA SIMPLE TEST</title>
+    <title>Legitimate App</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 4px; }
+        #result { margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 4px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
 </head>
 <body>
-    <h1>Test Page</h1>
-    <div id="status">Loading...</div>
-    
-    <script>
-        document.getElementById('status').innerHTML = '1. Script tag starting...';
-    </script>
+    <h1>🏢 Legitimate App (Victim)</h1>
+    <button id="login">Login with Google</button>
+    <div id="result"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@web3auth/modal@7.0.1/dist/modal.umd.min.js"></script>
-
-    <script>
-        document.getElementById('status').innerHTML = '2. Script tag executed';
+    <script type="import">
+        import { Web3Auth } from "https://esm.sh/@web3auth/modal@7.0.1";
         
-        setTimeout(() => {
+        const clientId = "BNHntDyvOGBtNZgkK77j_qVGCrDGPdOvOeJSbfsnsir4Y90kpTcrVTAtcdnwGKt-0wCJB3BZ89xOm8WUO-1u38Y";
+        
+        async function init() {
             try {
-                document.getElementById('status').innerHTML = '3. Checking window object...';
+                document.getElementById('result').innerHTML = '⏳ Initializing...';
                 
-                const keys = Object.keys(window);
-                document.getElementById('status').innerHTML = '4. Window keys: ' + keys.length;
+                const web3auth = new Web3Auth({
+                    clientId: clientId,
+                    web3AuthNetwork: "sapphire_devnet",
+                });
+
+                await web3auth.initModal();
                 
-                // Find any Web3 related globals
-                const web3Keys = keys.filter(k => 
-                    k.toLowerCase().includes('web3') || 
-                    k.toLowerCase().includes('auth')
-                );
+                document.getElementById('result').innerHTML = '✅ Ready to login';
                 
-                if (web3Keys.length > 0) {
-                    document.getElementById('status').innerHTML = '5. Found: ' + web3Keys.join(', ');
-                } else {
-                    document.getElementById('status').innerHTML = '5. NO Web3Auth found in window';
-                }
+                document.getElementById('login').onclick = async () => {
+                    try {
+                        document.getElementById('result').innerHTML = '⏳ Opening login...';
+                        const provider = await web3auth.connect();
+                        document.getElementById('result').innerHTML = '✅ Logged in! Check console';
+                        console.log('Provider:', provider);
+                        
+                        const user = await web3auth.getUserInfo();
+                        console.log('User:', user);
+                        
+                    } catch (error) {
+                        document.getElementById('result').innerHTML = '❌ Login failed: ' + error.message;
+                        console.error('Login error:', error);
+                    }
+                };
                 
-                console.log('All window keys:', keys);
-                
-            } catch (e) {
-                document.getElementById('status').innerHTML = 'ERROR: ' + e.message;
+            } catch (error) {
+                document.getElementById('result').innerHTML = '❌ Init failed: ' + error.message;
+                console.error('Init error:', error);
             }
-        }, 2000);
+        }
+
+        // Wait for DOM to load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
