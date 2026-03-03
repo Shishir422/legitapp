@@ -1,45 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test</title>
+    <title>ULTRA SIMPLE TEST</title>
 </head>
 <body>
-    <button id="login">Login</button>
-    <div id="status"></div>
+    <h1>Test Page</h1>
+    <div id="status">Loading...</div>
+    
+    <script>
+        document.getElementById('status').innerHTML = '1. Script tag starting...';
+    </script>
 
-    <!-- Load from most reliable CDN -->
-    <script src="https://unpkg.com/@web3auth/modal@7.0.1/dist/modal.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@web3auth/modal@7.0.1/dist/modal.umd.min.js"></script>
 
     <script>
-        document.getElementById('status').innerHTML = '✅ Script loaded';
+        document.getElementById('status').innerHTML = '2. Script tag executed';
         
-        document.getElementById('login').onclick = async () => {
+        setTimeout(() => {
             try {
-                document.getElementById('status').innerHTML = '⏳ Initializing...';
+                document.getElementById('status').innerHTML = '3. Checking window object...';
                 
-                // Try different possible names
-                const Web3AuthClass = window.Web3Auth || window.web3auth || window.Modal;
+                const keys = Object.keys(window);
+                document.getElementById('status').innerHTML = '4. Window keys: ' + keys.length;
                 
-                if (!Web3AuthClass) {
-                    throw new Error('Web3Auth not found. Available: ' + Object.keys(window).join(', '));
+                // Find any Web3 related globals
+                const web3Keys = keys.filter(k => 
+                    k.toLowerCase().includes('web3') || 
+                    k.toLowerCase().includes('auth')
+                );
+                
+                if (web3Keys.length > 0) {
+                    document.getElementById('status').innerHTML = '5. Found: ' + web3Keys.join(', ');
+                } else {
+                    document.getElementById('status').innerHTML = '5. NO Web3Auth found in window';
                 }
                 
-                const web3auth = new Web3AuthClass({
-                    clientId: "BNHntDyvOGBtNZgkK77j_qVGCrDGPdOvOeJSbfsnsir4Y90kpTcrVTAtcdnwGKt-0wCJB3BZ89xOm8WUO-1u38Y",
-                    web3AuthNetwork: "sapphire_devnet",
-                });
+                console.log('All window keys:', keys);
                 
-                document.getElementById('status').innerHTML = '✅ Initialized, opening modal...';
-                
-                await web3auth.initModal();
-                await web3auth.connect();
-                
-                document.getElementById('status').innerHTML = '✅ Connected!';
-            } catch (error) {
-                document.getElementById('status').innerHTML = '❌ Error: ' + error.message;
-                console.error(error);
+            } catch (e) {
+                document.getElementById('status').innerHTML = 'ERROR: ' + e.message;
             }
-        };
+        }, 2000);
     </script>
 </body>
 </html>
