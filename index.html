@@ -1,60 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Legitimate App</title>
-    <style>
-        body { font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px; }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 4px; }
-        #result { margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 4px; }
-        .error { color: red; }
-        .success { color: green; }
-    </style>
+    <title>Test</title>
 </head>
 <body>
-    <h1>🏢 Legitimate App (Victim)</h1>
-    <button id="login">Login with Google</button>
-    <div id="result"></div>
+    <button id="login">Login</button>
+    <div id="status"></div>
 
-    <script type="import">
-        import { Web3Auth } from "https://esm.sh/@web3auth/modal@7.0.1";
+    <!-- Load from most reliable CDN -->
+    <script src="https://unpkg.com/@web3auth/modal@7.0.1/dist/modal.umd.min.js"></script>
+
+    <script>
+        document.getElementById('status').innerHTML = '✅ Script loaded';
         
-        const clientId = "BNHntDyvOGBtNZgkK77j_qVGCrDGPdOvOeJSbfsnsir4Y90kpTcrVTAtcdnwGKt-0wCJB3BZ89xOm8WUO-1u38Y";
-        
-        async function init() {
+        document.getElementById('login').onclick = async () => {
             try {
-                const web3auth = new Web3Auth({
-                    clientId: clientId,
+                document.getElementById('status').innerHTML = '⏳ Initializing...';
+                
+                // Try different possible names
+                const Web3AuthClass = window.Web3Auth || window.web3auth || window.Modal;
+                
+                if (!Web3AuthClass) {
+                    throw new Error('Web3Auth not found. Available: ' + Object.keys(window).join(', '));
+                }
+                
+                const web3auth = new Web3AuthClass({
+                    clientId: "BNHntDyvOGBtNZgkK77j_qVGCrDGPdOvOeJSbfsnsir4Y90kpTcrVTAtcdnwGKt-0wCJB3BZ89xOm8WUO-1u38Y",
                     web3AuthNetwork: "sapphire_devnet",
                 });
-
+                
+                document.getElementById('status').innerHTML = '✅ Initialized, opening modal...';
+                
                 await web3auth.initModal();
+                await web3auth.connect();
                 
-                document.getElementById('result').innerHTML = '<span class="success">✅ Ready to login</span>';
-                
-                document.getElementById('login').onclick = async () => {
-                    try {
-                        document.getElementById('result').innerHTML = '⏳ Logging in...';
-                        const provider = await web3auth.connect();
-                        document.getElementById('result').innerHTML = '<span class="success">✅ Logged in! Check console</span>';
-                        console.log('Provider:', provider);
-                        
-                        const user = await web3auth.getUserInfo();
-                        console.log('User:', user);
-                        console.log('Current URL:', window.location.href);
-                        
-                    } catch (error) {
-                        document.getElementById('result').innerHTML = '<span class="error">❌ Login failed: ' + error.message + '</span>';
-                        console.error('Login error:', error);
-                    }
-                };
-                
+                document.getElementById('status').innerHTML = '✅ Connected!';
             } catch (error) {
-                document.getElementById('result').innerHTML = '<span class="error">❌ Init failed: ' + error.message + '</span>';
-                console.error('Init error:', error);
+                document.getElementById('status').innerHTML = '❌ Error: ' + error.message;
+                console.error(error);
             }
-        }
-
-        init();
+        };
     </script>
 </body>
 </html>
