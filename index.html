@@ -15,16 +15,28 @@
     <button id="login">Login with Google</button>
     <div id="result"></div>
 
-    <!-- Load Web3Auth from working CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@web3auth/modal@7.0.1/dist/web3auth.umd.min.js"></script>
+    <!-- Load Web3Auth from correct UMD path -->
+    <script src="https://cdn.jsdelivr.net/npm/@web3auth/modal@7.0.1/dist/modal.umd.min.js"></script>
     
     <script>
         const clientId = "BNHntDyvOGBtNZgkK77j_qVGCrDGPdOvOeJSbfsnsir4Y90kpTcrVTAtcdnwGKt-0wCJB3BZ89xOm8WUO-1u38Y";
         
         async function init() {
             try {
-                // UMD version is available as window.Web3Auth
-                const web3auth = new window.Web3Auth({
+                // Check what's available in window
+                console.log('Web3Auth available as:', window.Web3Auth);
+                console.log('Available globals:', Object.keys(window).filter(k => k.includes('Web3')));
+                
+                // The UMD export might be under a different name
+                // Try multiple possible names
+                const Web3AuthConstructor = window.Web3Auth || window.Web3auth || window.web3auth;
+                
+                if (!Web3AuthConstructor) {
+                    throw new Error('Web3Auth not found in window. Available globals: ' + 
+                        Object.keys(window).filter(k => k.includes('Web3')).join(', '));
+                }
+
+                const web3auth = new Web3AuthConstructor({
                     clientId: clientId,
                     web3AuthNetwork: "sapphire_devnet",
                 });
