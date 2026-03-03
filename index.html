@@ -1,62 +1,612 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Legitimate App</title>
-    <style>
-        body { font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px; }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 4px; }
-        #result { margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 4px; }
-        .error { color: red; }
-        .success { color: green; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — LegitimateApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0c10;
+      --surface:   #111318;
+      --border:    #1e2230;
+      --border-hi: #2e3450;
+      --accent:    #4f8cff;
+      --accent2:   #7c5cfc;
+      --green:     #22d3a0;
+      --red:       #ff5f5f;
+      --text:      #e8eaf0;
+      --muted:     #5a6080;
+      --mono:      'Space Mono', monospace;
+      --sans:      'DM Sans', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Grid background ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(79,140,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,140,255,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(79,140,255,.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Layout ── */
+    .page {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+
+    /* ── Card ── */
+    .card {
+      width: 100%; max-width: 420px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 36px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.03), 0 32px 64px rgba(0,0,0,.6);
+      animation: fadeUp .5s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Logo / brand ── */
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 32px;
+    }
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: #fff;
+      font-family: var(--mono);
+      box-shadow: 0 0 20px rgba(79,140,255,.35);
+    }
+    .brand-name {
+      font-size: 18px; font-weight: 600; letter-spacing: -.3px;
+    }
+    .brand-tag {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--green);
+      background: rgba(34,211,160,.1);
+      border: 1px solid rgba(34,211,160,.25);
+      border-radius: 4px;
+      padding: 2px 6px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    h1 {
+      font-size: 22px; font-weight: 600; letter-spacing: -.4px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 14px; color: var(--muted); line-height: 1.5;
+      margin-bottom: 32px;
+    }
+
+    /* ── Status ── */
+    .status-wrap {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      min-height: 20px;
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+    .status-dot.loading  { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
+    .status-dot.ready    { background: var(--green); }
+    .status-dot.error    { background: var(--red); }
+    .status-dot.loggedin { background: var(--green); animation: pulse 2s ease-in-out infinite; }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: .3; }
+    }
+
+    /* ── Google button ── */
+    #loginBtn {
+      width: 100%; height: 52px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: #fff;
+      color: #1a1a2e;
+      border: none;
+      border-radius: 12px;
+      font-family: var(--sans); font-size: 15px; font-weight: 500;
+      cursor: pointer;
+      transition: all .18s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,.25);
+      position: relative; overflow: hidden;
+    }
+    #loginBtn:disabled {
+      opacity: .4; cursor: not-allowed;
+    }
+    #loginBtn:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0,0,0,.35);
+    }
+    #loginBtn:not(:disabled):active {
+      transform: translateY(0);
+    }
+    #loginBtn .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid #ccc; border-top-color: #333;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loginBtn.loading .btn-icon { display: none; }
+    #loginBtn.loading .spinner  { display: block; }
+    #loginBtn.loading .btn-text { color: #666; }
+
+    .google-logo {
+      width: 20px; height: 20px; flex-shrink: 0;
+    }
+
+    /* ── User info panel ── */
+    #userPanel {
+      display: none;
+      animation: fadeUp .4s cubic-bezier(.16,1,.3,1) both;
+    }
+    .user-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 2px solid var(--border-hi);
+      margin: 0 auto 16px;
+      display: block;
+      background: var(--border);
+    }
+    .user-name {
+      text-align: center; font-size: 17px; font-weight: 600; margin-bottom: 4px;
+    }
+    .user-email {
+      text-align: center; font-size: 13px; color: var(--muted); margin-bottom: 24px;
+    }
+    .session-box {
+      background: rgba(79,140,255,.06);
+      border: 1px solid rgba(79,140,255,.15);
+      border-radius: 10px;
+      padding: 14px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--muted);
+      word-break: break-all;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    .session-box .key { color: var(--accent); }
+    .session-box .val { color: var(--text); }
+
+    #logoutBtn {
+      width: 100%; height: 44px;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: var(--sans); font-size: 14px;
+      cursor: pointer;
+      transition: all .18s ease;
+    }
+    #logoutBtn:hover {
+      border-color: var(--border-hi);
+      color: var(--text);
+      background: rgba(255,255,255,.03);
+    }
+
+    /* ── Debug log ── */
+    details {
+      margin-top: 20px;
+    }
+    summary {
+      font-family: var(--mono); font-size: 11px; color: var(--muted);
+      cursor: pointer; user-select: none;
+      list-style: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+    summary::before { content: '▶'; font-size: 9px; transition: transform .2s; }
+    details[open] summary::before { transform: rotate(90deg); }
+    #debugLog {
+      margin-top: 10px;
+      background: rgba(0,0,0,.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: var(--mono); font-size: 10.5px;
+      line-height: 1.7;
+    }
+    .log-info  { color: var(--muted); }
+    .log-ok    { color: var(--green); }
+    .log-warn  { color: #f5a623; }
+    .log-error { color: var(--red); }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px; background: var(--border); margin: 28px 0;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 28px;
+      font-size: 12px; color: var(--muted); text-align: center;
+    }
+    .footer a { color: var(--muted); }
+
+    /* ── URL session banner ── */
+    #sessionBanner {
+      display: none;
+      margin-bottom: 16px;
+      padding: 10px 14px;
+      background: rgba(34,211,160,.08);
+      border: 1px solid rgba(34,211,160,.2);
+      border-radius: 10px;
+      font-family: var(--mono); font-size: 11px; color: var(--green);
+    }
+  </style>
 </head>
 <body>
-    <h1>🏢 Legitimate App (Victim)</h1>
-    <button id="login">Login with Google</button>
-    <div id="result">Loading...</div>
+<div class="page">
+  <div class="card">
 
-    <script type="module">
-        // Use JSDelivr ESM
-        import { Web3Auth } from 'https://cdn.jsdelivr.net/npm/@web3auth/modal@7.0.1/+esm';
-        
-        const clientId = "BNHntDyvOGBtNZgkK77j_qVGCrDGPdOvOeJSbfsnsir4Y90kpTcrVTAtcdnwGKt-0wCJB3BZ89xOm8WUO-1u38Y";
-        
-        async function init() {
-            try {
-                document.getElementById('result').innerHTML = 'Initializing...';
-                
-                const web3auth = new Web3Auth({
-                    clientId: clientId,
-                    web3AuthNetwork: "sapphire_devnet",
-                });
+    <div class="brand">
+      <div class="brand-icon">L</div>
+      <span class="brand-name">LegitimateApp <span class="brand-tag">devnet</span></span>
+    </div>
 
-                await web3auth.initModal();
-                
-                document.getElementById('result').innerHTML = '✅ Ready to login';
-                
-                document.getElementById('login').onclick = async () => {
-                    try {
-                        document.getElementById('result').innerHTML = '⏳ Opening login...';
-                        const provider = await web3auth.connect();
-                        document.getElementById('result').innerHTML = '✅ Logged in! Check console';
-                        console.log('Provider:', provider);
-                        
-                        const user = await web3auth.getUserInfo();
-                        console.log('User:', user);
-                        
-                    } catch (error) {
-                        document.getElementById('result').innerHTML = '❌ Login failed: ' + error.message;
-                        console.error('Login error:', error);
-                    }
-                };
-                
-            } catch (error) {
-                document.getElementById('result').innerHTML = '❌ Error: ' + error.message;
-                console.error('Init error:', error);
-            }
+    <h1>Welcome back</h1>
+    <p class="subtitle">Sign in with your Google account to continue.<br>Secured by Web3Auth.</p>
+
+    <div id="sessionBanner"></div>
+
+    <div class="status-wrap">
+      <div class="status-dot loading" id="statusDot"></div>
+      <span id="statusText">Initializing Web3Auth SDK…</span>
+    </div>
+
+    <!-- Login view -->
+    <div id="loginPanel">
+      <button id="loginBtn" disabled>
+        <!-- Google SVG -->
+        <svg class="btn-icon google-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        <div class="spinner"></div>
+        <span class="btn-text">Continue with Google</span>
+      </button>
+    </div>
+
+    <!-- Logged-in view -->
+    <div id="userPanel">
+      <img id="userAvatar" class="user-avatar" src="" alt="" />
+      <div class="user-name" id="userName"></div>
+      <div class="user-email" id="userEmail"></div>
+      <div class="session-box" id="sessionBox"></div>
+      <button id="logoutBtn">Sign out</button>
+    </div>
+
+    <details>
+      <summary>Debug log</summary>
+      <div id="debugLog"></div>
+    </details>
+
+  </div>
+  <p class="footer">Powered by <a href="https://web3auth.io" target="_blank">Web3Auth</a> · sapphire_devnet</p>
+</div>
+
+<script type="module">
+  /* ─────────────────────────────────────────────
+     CONFIG
+  ───────────────────────────────────────────── */
+  const CLIENT_ID   = "BNHntDyvOGBtNZgkK77j_qVGCrDGPdOvOeJSbfsnsir4Y90kpTcrVTAtcdnwGKt-0wCJB3BZ89xOm8WUO-1u38Y";
+  const NETWORK     = "sapphire_devnet";
+  const REDIRECT_URL = window.location.origin + window.location.pathname;
+
+  /* ─────────────────────────────────────────────
+     DEBUG / STATUS HELPERS
+  ───────────────────────────────────────────── */
+  const $statusDot  = document.getElementById('statusDot');
+  const $statusText = document.getElementById('statusText');
+  const $debugLog   = document.getElementById('debugLog');
+
+  function log(msg, type = 'info') {
+    console.log(`[Web3Auth:${type}]`, msg);
+    const el = document.createElement('div');
+    el.className = `log-${type}`;
+    const ts = new Date().toISOString().split('T')[1].slice(0, 8);
+    el.textContent = `${ts}  ${msg}`;
+    $debugLog.appendChild(el);
+    $debugLog.scrollTop = $debugLog.scrollHeight;
+  }
+
+  function setStatus(msg, state = 'loading') {
+    $statusText.textContent = msg;
+    $statusDot.className = `status-dot ${state}`;
+    log(msg, state === 'error' ? 'error' : state === 'ready' || state === 'loggedin' || state === 'ok' ? 'ok' : 'info');
+  }
+
+  /* ─────────────────────────────────────────────
+     LOAD WEB3AUTH
+     WHY esm.sh?bundle WORKS:
+     - ?bundle tells esm.sh to bundle ALL transitive deps into one file.
+     - This resolves the "loglevel" CJS/ESM mismatch that breaks bare imports.
+     - jsdelivr/unpkg serve UMD builds where `new Web3Auth(...)` is
+       actually `new window.Web3Auth.Web3Auth(...)` – wrong constructor shape.
+     - skypack doesn't support bundling CJS-heavy packages reliably.
+     - esm.sh?bundle converts every CJS dep to ESM internally, so the
+       named export `Web3Auth` comes out as a proper ES class.
+  ───────────────────────────────────────────── */
+  const ESM_URL = "https://esm.sh/@web3auth/modal@7.0.1?bundle&target=es2020";
+
+  /* ─────────────────────────────────────────────
+     MAIN
+  ───────────────────────────────────────────── */
+  let web3auth = null;
+
+  async function init() {
+    setStatus("Loading Web3Auth SDK…", "loading");
+    log(`CDN: ${ESM_URL}`);
+
+    let Web3Auth;
+    try {
+      const mod = await import(ESM_URL);
+      Web3Auth = mod.Web3Auth || mod.default?.Web3Auth || mod.default;
+      if (typeof Web3Auth !== 'function') throw new Error("Web3Auth class not found in module exports");
+      log("Module loaded ✓", "ok");
+    } catch (err) {
+      setStatus(`SDK load failed: ${err.message}`, "error");
+      log(`Full error: ${err.stack || err}`, "error");
+      return;
+    }
+
+    setStatus("Constructing Web3Auth instance…", "loading");
+    try {
+      web3auth = new Web3Auth({
+        clientId: CLIENT_ID,
+        web3AuthNetwork: NETWORK,
+        chainConfig: {
+          chainNamespace: "eip155",        // EVM-compatible chain
+          chainId: "0x1",
+          displayName: "Ethereum Mainnet",
+          blockExplorer: "https://etherscan.io",
+          ticker: "ETH",
+          tickerName: "Ethereum",
+          rpcTarget: "https://rpc.ankr.com/eth",
+        },
+        uiConfig: {
+          appName: "LegitimateApp",
+          theme: { primary: "#4f8cff" },
+          mode: "dark",
+          defaultLanguage: "en",
+          loginMethodsOrder: ["google"],
+        },
+      });
+      log("Instance created ✓", "ok");
+    } catch (err) {
+      setStatus(`Construction failed: ${err.message}`, "error");
+      log(err.stack || err, "error");
+      return;
+    }
+
+    setStatus("Initialising modal…", "loading");
+    try {
+      await web3auth.initModal({
+        modalConfig: {
+          // Show only the openlogin (social) adapter
+          openlogin: {
+            label: "openlogin",
+            loginMethods: {
+              google: { name: "Google", showOnModal: true },
+              // hide everything else
+              facebook: { showOnModal: false },
+              twitter: { showOnModal: false },
+              reddit: { showOnModal: false },
+              discord: { showOnModal: false },
+              twitch: { showOnModal: false },
+              apple: { showOnModal: false },
+              line: { showOnModal: false },
+              github: { showOnModal: false },
+              kakao: { showOnModal: false },
+              linkedin: { showOnModal: false },
+              weibo: { showOnModal: false },
+              wechat: { showOnModal: false },
+              email_passwordless: { showOnModal: false },
+              sms_passwordless: { showOnModal: false },
+            },
+          },
+        },
+      });
+      log("initModal() complete ✓", "ok");
+    } catch (err) {
+      // initModal errors are sometimes non-fatal (wallet adapter config warnings)
+      log(`initModal warning: ${err.message}`, "warn");
+    }
+
+    /* Already connected? (e.g. returning from redirect or existing session) */
+    if (web3auth.connected) {
+      log("Existing session detected", "ok");
+      await showLoggedIn();
+      return;
+    }
+
+    /* Check URL for returning redirect session */
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('w3a_session')) {
+      log("w3a_session param found – checking connection…", "info");
+      if (web3auth.connected) {
+        await showLoggedIn();
+        return;
+      }
+    }
+
+    /* Ready for login */
+    setStatus("Ready — click below to sign in", "ready");
+    document.getElementById('loginBtn').disabled = false;
+  }
+
+  /* ─────────────────────────────────────────────
+     LOGIN BUTTON
+  ───────────────────────────────────────────── */
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    if (!web3auth) return;
+
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    setStatus("Opening Google sign-in…", "loading");
+
+    try {
+      /*
+       * connectTo("openlogin", { loginProvider: "google" }) bypasses the
+       * modal entirely and directly triggers Google OAuth. If the adapter
+       * name has been renamed in this build we fall back to connect().
+       */
+      try {
+        await web3auth.connectTo("openlogin", { loginProvider: "google" });
+      } catch (adapterErr) {
+        // If adapter not found, fall back to opening the modal
+        if (adapterErr.message?.toLowerCase().includes("adapter")) {
+          log("openlogin adapter fallback → opening modal", "warn");
+          await web3auth.connect();
+        } else {
+          throw adapterErr;
         }
+      }
 
-        init();
-    </script>
+      await showLoggedIn();
+    } catch (err) {
+      const msg = err.message || String(err);
+      if (msg.toLowerCase().includes("user closed") || msg.toLowerCase().includes("cancelled")) {
+        setStatus("Sign-in cancelled", "ready");
+        log("User cancelled", "warn");
+      } else {
+        setStatus(`Login error: ${msg}`, "error");
+        log(`Login error: ${err.stack || err}`, "error");
+      }
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    }
+  });
+
+  /* ─────────────────────────────────────────────
+     SHOW LOGGED-IN STATE
+  ───────────────────────────────────────────── */
+  async function showLoggedIn() {
+    setStatus("Fetching user info…", "loading");
+
+    let info = {};
+    try {
+      info = await web3auth.getUserInfo();
+      log(`Logged in: ${info.email || info.name}`, "ok");
+    } catch (err) {
+      log(`getUserInfo error: ${err.message}`, "warn");
+    }
+
+    /* ── Populate session data into URL ── */
+    const sessionParams = new URLSearchParams({
+      w3a_session: "1",
+      provider:    info.typeOfLogin   || "web3auth",
+      user:        info.email         || info.name || "unknown",
+      verifier:    info.verifier      || "",
+      ts:          Date.now().toString(),
+    });
+    window.history.replaceState({}, "", `?${sessionParams.toString()}`);
+
+    /* ── Show URL banner ── */
+    const banner = document.getElementById('sessionBanner');
+    banner.style.display = 'block';
+    banner.textContent = `✓ Session active · ${window.location.search}`;
+
+    /* ── Fill user panel ── */
+    document.getElementById('userName').textContent  = info.name  || "User";
+    document.getElementById('userEmail').textContent = info.email || "";
+
+    const avatar = document.getElementById('userAvatar');
+    if (info.profileImage) {
+      avatar.src = info.profileImage;
+      avatar.onerror = () => { avatar.style.display = 'none'; };
+    } else {
+      avatar.style.display = 'none';
+    }
+
+    /* ── Build key-value session box ── */
+    const sessionBox = document.getElementById('sessionBox');
+    const fields = {
+      name:         info.name           || "–",
+      email:        info.email          || "–",
+      provider:     info.typeOfLogin    || "–",
+      verifier:     info.verifier       || "–",
+      aggregateVerifier: info.aggregateVerifier || "–",
+      connected:    "true",
+      network:      NETWORK,
+    };
+    sessionBox.innerHTML = Object.entries(fields)
+      .map(([k, v]) => `<span class="key">${k}</span>  <span class="val">${v}</span>`)
+      .join('<br/>');
+
+    /* ── Toggle panels ── */
+    document.getElementById('loginPanel').style.display = 'none';
+    document.getElementById('userPanel').style.display  = 'block';
+    setStatus(`Signed in as ${info.email || info.name}`, "loggedin");
+  }
+
+  /* ─────────────────────────────────────────────
+     LOGOUT
+  ───────────────────────────────────────────── */
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+      setStatus("Signing out…", "loading");
+      await web3auth.logout();
+    } catch (err) {
+      log(`Logout warning: ${err.message}`, "warn");
+    }
+    /* Clear session from URL and reload */
+    window.history.replaceState({}, "", window.location.pathname);
+    window.location.reload();
+  });
+
+  /* ─────────────────────────────────────────────
+     RUN
+  ───────────────────────────────────────────── */
+  init().catch(err => {
+    setStatus(`Fatal: ${err.message}`, "error");
+    log(err.stack || err, "error");
+  });
+</script>
 </body>
 </html>
