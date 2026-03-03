@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Legitimate App</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        #result { margin-top: 20px; padding: 10px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>🏢 Legitimate App (Victim)</h1>
+    <button id="login">Login with Google</button>
+    <div id="result"></div>
+
+    <script type="module">
+        import { Web3Auth } from "https://esm.sh/@web3auth/modal";
+
+        // CONFIGURATION - REPLACE WITH YOUR PROJECT A CLIENT ID
+        const clientId = "YOUR_PROJECT_A_CLIENT_ID_HERE";
+
+        const web3auth = new Web3Auth({
+            clientId: clientId,
+            web3AuthNetwork: "sapphire_devnet",
+        });
+
+        async function init() {
+            try {
+                await web3auth.initModal();
+                document.getElementById('result').innerHTML = '✅ Ready to login';
+            } catch (error) {
+                document.getElementById('result').innerHTML = '❌ Init failed: ' + error.message;
+            }
+        }
+
+        init();
+
+        document.getElementById('login').onclick = async () => {
+            try {
+                const provider = await web3auth.connect();
+                document.getElementById('result').innerHTML = '✅ Logged in! Check console';
+                console.log('Provider:', provider);
+                
+                // Get user info
+                const user = await web3auth.getUserInfo();
+                console.log('User:', user);
+                
+                // The sessionId will be in URL after redirect
+                console.log('Current URL:', window.location.href);
+                
+            } catch (error) {
+                document.getElementById('result').innerHTML = '❌ Login failed: ' + error.message;
+            }
+        };
+    </script>
+</body>
+</html>
